@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Emby.Plugin.TelegramNotification</AssemblyName>
+    <RootNamespace>Emby.Plugin.TelegramNotification</RootNamespace>
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+    <FileVersion>1.4.2.0</FileVersion>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="mediabrowser.server.core" Version="4.8.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="src/Configuration/config.html" LogicalName="Emby.Plugin.TelegramNotification.Configuration.config.html" />
+    <EmbeddedResource Include="src/Configuration/config.js" LogicalName="Emby.Plugin.TelegramNotification.Configuration.config.js" />
+    <EmbeddedResource Include="src/Configuration/entryeditor.js" LogicalName="Emby.Plugin.TelegramNotification.Configuration.entryeditor.js" />
+    <EmbeddedResource Include="src/Configuration/entryeditor.template.html" LogicalName="Emby.Plugin.TelegramNotification.Configuration.entryeditor.template.html" />
+    <EmbeddedResource Include="src/thumb.png" LogicalName="Emby.Plugin.TelegramNotification.thumb.png" />
+  </ItemGroup>
+
+</Project>

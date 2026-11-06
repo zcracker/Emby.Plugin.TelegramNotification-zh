@@ -1,0 +1,71 @@
+<!---->
+<!---->
+<!-- Telegram Notifications - plugin settings page (Emby 4.10+ plugin page).
+     Superset of the original telegramnotificationeditorjs page: 名称 / Bot Token /
+     Chat ID / 获取 Chat-ID / 停用海报 / 停用简介 / 保存 / 测试 / 完整通知编辑器入口.
+     NOTE: no h1/h2 on purpose - Emby renders the page header itself. -->
+
+<div id="telegramConfigurationPage" data-role="page" class="type-interior pluginConfigurationPage" data-require="emby-button,emby-input,emby-checkbox" data-controller="__plugin/telegramjs">
+
+    <div style="margin:1.5em 2em 0 2em;">
+        <div class="fieldDescription">
+            构建 5。下方为服务器级默认值；「事件订阅 / 用户 / 媒体库 / 设备 / 测试」属于单条通知条目，用下面的按钮打开完整编辑器。
+        </div>
+    </div>
+
+    <div class="readOnlyContent auto-center" style="margin:1.2em 2em 0 2em;">
+        <button is="emby-button" type="button" class="raised block btnOpenEntryEditor">
+            <span>打开完整通知编辑器（事件订阅 / 用户 / 媒体库 / 设备）</span>
+        </button>
+    </div>
+
+    <form class="auto-center" style="margin-top:1.5em; margin-left:2em; margin-right:2em; max-width:40em;">
+
+        <div class="inputContainer">
+            <input is="emby-input" type="text" class="txtFriendlyName" label="名称" autocomplete="off" />
+            <div class="fieldDescription">这条通知的名字（存在当前用户的 Telegram 通知条目里，就是原来那个「名称」）</div>
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="text" class="txtTelegramBotToken" label="Telegram Bot Token" autocomplete="off" />
+            <div class="fieldDescription">向 @BotFather 申请得到的机器人 Token</div>
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="text" class="txtTelegramChatID" label="Telegram Chat ID" autocomplete="off" />
+            <div class="fieldDescription">私聊为正数，群组/频道为负数（例如 -1001234567890）</div>
+        </div>
+
+        <div class="readOnlyContent auto-center" style="margin-top:1em;">
+            <button is="emby-button" type="button" class="raised block btnFetchChatID"><span>获取 Chat-ID（读 bot 的 getUpdates）</span></button>
+        </div>
+
+        <div class="checkboxContainer" style="margin-top:1.2em;">
+            <label class="emby-checkbox-label">
+                <input is="emby-checkbox" type="checkbox" class="chkTelegramDisablePoster" />
+                <span>停用海报（只发文字）</span>
+            </label>
+        </div>
+
+        <div class="checkboxContainer">
+            <label class="emby-checkbox-label">
+                <input is="emby-checkbox" type="checkbox" class="chkTelegramDisableDescription" />
+                <span>停用剧情简介</span>
+            </label>
+        </div>
+
+        <div class="fieldDescription" style="margin-top:1.5em;">
+            通知条目里填了值就优先用条目里的；条目里留空则回落到这里的值。
+        </div>
+
+        <div class="readOnlyContent auto-center" style="margin-top:2em;">
+            <button is="emby-button" type="submit" class="raised button-submit block"><span>保存</span></button>
+        </div>
+
+        <div class="readOnlyContent auto-center" style="margin-top:1em;">
+            <button is="emby-button" type="button" class="raised block btnTestTelegram"><span>用上面的 Token / Chat ID 发送测试消息</span></button>
+        </div>
+
+    </form>
+
+</div>
