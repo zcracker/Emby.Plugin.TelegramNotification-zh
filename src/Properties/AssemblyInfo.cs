@@ -5,8 +5,8 @@ using System.Runtime.Versioning;
 
 [assembly: AssemblyCompany("Emby.Plugin.TelegramNotification")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyFileVersion("1.4.8.0")]
+[assembly: AssemblyFileVersion("1.4.9.0")]
 [assembly: AssemblyInformationalVersion("1.0.0")]
 [assembly: AssemblyProduct("Emby.Plugin.TelegramNotification")]
 [assembly: AssemblyTitle("Emby.Plugin.TelegramNotification")]
-[assembly: AssemblyVersion("1.4.8.0")]
+[assembly: AssemblyVersion("1.4.9.0")]

@@ -2,7 +2,7 @@
 
 Emby 服务器插件：把播放/入库等通知推送到 Telegram Bot。本仓库是上游
 [bjoerns1983/Emby.Plugin.TelegramNotification](https://github.com/bjoerns1983/Emby.Plugin.TelegramNotification)
-（GPL-2.0）的修改版，当前版本 `1.4.8.0`，界面中文化并补上了服务器级配置与代理支持。
+（GPL-2.0）的修改版，当前版本 `1.4.9.0`，界面中文化并补上了服务器级配置与代理支持。
 
 ## 与上游的差异
 
@@ -21,7 +21,7 @@ Emby 服务器插件：把播放/入库等通知推送到 Telegram Bot。本仓�
 
 ## 安装
 
-1. 从 [Releases](../../releases) 下载 `Emby.Plugin.TelegramNotification-1.4.8.0.dll`
+1. 从 [Releases](../../releases) 下载 `Emby.Plugin.TelegramNotification-1.4.9.0.dll`
 2. 放进 Emby 的插件目录，例如 `/var/lib/emby/plugins`（Windows 一般是
    `C:\Users\<用户>\AppData\Roaming\Emby-Server\programdata\plugins`）
 3. 重启 Emby
