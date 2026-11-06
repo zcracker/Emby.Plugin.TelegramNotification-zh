@@ -7,9 +7,10 @@
 
 <div id="telegramConfigurationPage" data-role="page" class="type-interior pluginConfigurationPage" data-require="emby-button,emby-input,emby-checkbox,emby-select" data-controller="__plugin/telegramjs">
 
-    <div style="margin:1.5em 2em 0 2em;">
+    <div style="margin:4em 2em 0 2em;">
         <div class="fieldDescription">
-            构建 6。下方为服务器级默认值；「事件订阅 / 用户 / 媒体库 / 设备 / 测试」属于单条通知条目，用下面的按钮打开完整编辑器。
+            这里是服务器级默认值：Bot Token / Chat ID / 海报开关 / 代理。
+            每条通知的「名称」和「事件订阅」在通知编辑器里改，点下面的按钮打开。
         </div>
     </div>
 
@@ -23,7 +24,7 @@
 
         <div class="inputContainer">
             <input is="emby-input" type="text" class="txtFriendlyName" label="名称" autocomplete="off" />
-            <div class="fieldDescription">这条通知的名字（存在当前用户的 Telegram 通知条目里，就是原来那个「名称」）</div>
+            <div class="fieldDescription">这条通知在通知列表里的名字（写入当前用户的 Telegram 通知条目）</div>
         </div>
 
         <div class="inputContainer">

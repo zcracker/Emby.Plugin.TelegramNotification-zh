@@ -44,6 +44,23 @@ define(['baseView', 'loading', 'emby-input', 'emby-button', 'emby-checkbox', 'pl
         return getTelegramEntry().then(function (entry) {
             currentEntry = entry;
             page.querySelector('.txtFriendlyName').value = entry ? (entry.FriendlyName || '') : '';
+
+            // 服务器级配置为空时，把通知条目里已有的值显示出来，
+            // 避免「页面上是空的、通知其实在用条目里的值」这种两套数据显示不一致。
+            if (entry && entry.Options) {
+                if (!config.BotToken && entry.Options.BotToken) {
+                    page.querySelector('.txtTelegramBotToken').value = entry.Options.BotToken;
+                }
+                if (!config.ChatID && entry.Options.ChatID) {
+                    page.querySelector('.txtTelegramChatID').value = entry.Options.ChatID;
+                }
+                if (config.DisablePoster !== true && entry.Options.DisablePoster === 'true') {
+                    page.querySelector('.chkTelegramDisablePoster').checked = true;
+                }
+                if (config.DisableDescription !== true && entry.Options.DisableDescription === 'true') {
+                    page.querySelector('.chkTelegramDisableDescription').checked = true;
+                }
+            }
         }, function () {
         });
     }
@@ -55,14 +72,18 @@ define(['baseView', 'loading', 'emby-input', 'emby-button', 'emby-checkbox', 'pl
 
         var form = this;
         var page = this;
-        var friendlyName = form.querySelector('.txtFriendlyName').value;
+        var friendlyName = (form.querySelector('.txtFriendlyName').value || '').trim();
+        var botToken = form.querySelector('.txtTelegramBotToken').value;
+        var chatID = form.querySelector('.txtTelegramChatID').value;
+        var disablePoster = form.querySelector('.chkTelegramDisablePoster').checked;
+        var disableDescription = form.querySelector('.chkTelegramDisableDescription').checked;
 
         getConfig().then(function (config) {
 
-            config.BotToken = form.querySelector('.txtTelegramBotToken').value;
-            config.ChatID = form.querySelector('.txtTelegramChatID').value;
-            config.DisablePoster = form.querySelector('.chkTelegramDisablePoster').checked;
-            config.DisableDescription = form.querySelector('.chkTelegramDisableDescription').checked;
+            config.BotToken = botToken;
+            config.ChatID = chatID;
+            config.DisablePoster = disablePoster;
+            config.DisableDescription = disableDescription;
             config.ProxyType = form.querySelector('.selProxyType').value || '';
             config.ProxyHost = form.querySelector('.txtProxyHost').value || '';
             config.ProxyPort = parseInt(form.querySelector('.txtProxyPort').value, 10) || 0;
@@ -76,7 +97,15 @@ define(['baseView', 'loading', 'emby-input', 'emby-button', 'emby-checkbox', 'pl
                 if (!entry) {
                     return null;
                 }
-                entry.FriendlyName = friendlyName;
+                entry.FriendlyName = friendlyName || entry.FriendlyName || 'Telegram';
+
+                // 让通知条目跟页面保持一致，避免两处各存一份、看起来重复还可能不一致
+                entry.Options = entry.Options || {};
+                entry.Options.BotToken = botToken;
+                entry.Options.ChatID = chatID;
+                entry.Options.DisablePoster = '' + disablePoster;
+                entry.Options.DisableDescription = '' + disableDescription;
+
                 return ApiClient.saveUserNotification(entry);
             });
         }).then(function () {
