@@ -5,11 +5,11 @@
      Chat ID / 获取 Chat-ID / 停用海报 / 停用简介 / 保存 / 测试 / 完整通知编辑器入口.
      NOTE: no h1/h2 on purpose - Emby renders the page header itself. -->
 
-<div id="telegramConfigurationPage" data-role="page" class="type-interior pluginConfigurationPage" data-require="emby-button,emby-input,emby-checkbox" data-controller="__plugin/telegramjs">
+<div id="telegramConfigurationPage" data-role="page" class="type-interior pluginConfigurationPage" data-require="emby-button,emby-input,emby-checkbox,emby-select" data-controller="__plugin/telegramjs">
 
     <div style="margin:1.5em 2em 0 2em;">
         <div class="fieldDescription">
-            构建 5。下方为服务器级默认值；「事件订阅 / 用户 / 媒体库 / 设备 / 测试」属于单条通知条目，用下面的按钮打开完整编辑器。
+            构建 6。下方为服务器级默认值；「事件订阅 / 用户 / 媒体库 / 设备 / 测试」属于单条通知条目，用下面的按钮打开完整编辑器。
         </div>
     </div>
 
@@ -56,6 +56,34 @@
 
         <div class="fieldDescription" style="margin-top:1.5em;">
             通知条目里填了值就优先用条目里的；条目里留空则回落到这里的值。
+        </div>
+
+        <div class="selectContainer" style="margin-top:1.5em;">
+            <select is="emby-select" class="selProxyType" label="代理">
+                <option value="">不使用代理（直连）</option>
+                <option value="http">HTTP 代理</option>
+                <option value="https">HTTPS 代理（到代理本身走 TLS）</option>
+                <option value="socks5">SOCKS5 代理</option>
+            </select>
+            <div class="fieldDescription">国内网络直连 api.telegram.org 一般不通，填本地或局域网代理即可。HTTP/HTTPS 代理对 https 目标走 CONNECT 隧道。</div>
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="text" class="txtProxyHost" label="代理地址" autocomplete="off" />
+            <div class="fieldDescription">IP 或域名，例如 10.0.0.115；带不带 http:// 都行</div>
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="number" class="txtProxyPort" label="代理端口" min="1" max="65535" />
+            <div class="fieldDescription">例如 7890</div>
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="text" class="txtProxyUser" label="代理用户名（可选）" autocomplete="off" />
+        </div>
+
+        <div class="inputContainer">
+            <input is="emby-input" type="password" class="txtProxyPass" label="代理密码（可选）" autocomplete="off" />
         </div>
 
         <div class="readOnlyContent auto-center" style="margin-top:2em;">

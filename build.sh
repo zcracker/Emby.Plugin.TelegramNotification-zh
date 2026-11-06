@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="1.4.2.0"
+VERSION="1.4.3.0"
 
 dotnet build -c Release
 

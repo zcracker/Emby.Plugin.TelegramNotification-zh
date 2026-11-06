@@ -129,7 +129,9 @@ namespace Emby.Plugin.TelegramNotification
             return string.IsNullOrWhiteSpace(configuration.BotToken)
                 && string.IsNullOrWhiteSpace(configuration.ChatID)
                 && !configuration.DisablePoster
-                && !configuration.DisableDescription;
+                && !configuration.DisableDescription
+                && string.IsNullOrWhiteSpace(configuration.ProxyType)
+                && string.IsNullOrWhiteSpace(configuration.ProxyHost);
         }
 
         public void SetStartupInfo(Action<string> startupInfo)
@@ -222,6 +224,27 @@ namespace Emby.Plugin.TelegramNotification
                         {
                             configuration.DisableDescription = string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
                         }
+                        else if (string.Equals(key, "ProxyType", StringComparison.OrdinalIgnoreCase))
+                        {
+                            configuration.ProxyType = value;
+                        }
+                        else if (string.Equals(key, "ProxyHost", StringComparison.OrdinalIgnoreCase))
+                        {
+                            configuration.ProxyHost = value;
+                        }
+                        else if (string.Equals(key, "ProxyPort", StringComparison.OrdinalIgnoreCase))
+                        {
+                            int.TryParse(value, out var port);
+                            configuration.ProxyPort = port;
+                        }
+                        else if (string.Equals(key, "ProxyUser", StringComparison.OrdinalIgnoreCase))
+                        {
+                            configuration.ProxyUser = value;
+                        }
+                        else if (string.Equals(key, "ProxyPass", StringComparison.OrdinalIgnoreCase))
+                        {
+                            configuration.ProxyPass = value;
+                        }
                     }
                 }
             }
@@ -243,7 +266,12 @@ namespace Emby.Plugin.TelegramNotification
                     "BotToken=" + (configuration.BotToken ?? string.Empty),
                     "ChatID=" + (configuration.ChatID ?? string.Empty),
                     "DisablePoster=" + (configuration.DisablePoster ? "true" : "false"),
-                    "DisableDescription=" + (configuration.DisableDescription ? "true" : "false")
+                    "DisableDescription=" + (configuration.DisableDescription ? "true" : "false"),
+                    "ProxyType=" + (configuration.ProxyType ?? string.Empty),
+                    "ProxyHost=" + (configuration.ProxyHost ?? string.Empty),
+                    "ProxyPort=" + configuration.ProxyPort,
+                    "ProxyUser=" + (configuration.ProxyUser ?? string.Empty),
+                    "ProxyPass=" + (configuration.ProxyPass ?? string.Empty)
                 });
             }
             catch

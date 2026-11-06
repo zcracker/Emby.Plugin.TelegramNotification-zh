@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -22,7 +21,8 @@ namespace Emby.Plugin.TelegramNotification
     /// <summary>
     /// Emby user notifier that pushes a message (optionally with the poster) to a Telegram chat.
     /// Values set on the per-user notification entry win; the server-level plugin
-    /// configuration is used as a fallback.
+    /// configuration is used as a fallback. All requests can be routed through a
+    /// HTTP / HTTPS / SOCKS5 proxy configured in the plugin settings.
     /// </summary>
     public class Notifier : IUserNotifier
     {
@@ -86,81 +86,122 @@ namespace Emby.Plugin.TelegramNotification
                 }
             }
 
-            var imageInfo = request.GetSeriesImageInfo(ImageType.Primary)
-                ?? request.GetSeriesImageInfo(ImageType.Thumb)
-                ?? request.GetImageInfo(ImageType.Primary);
+            var configuration = Plugin.Configuration as PluginConfiguration;
+            var message = BuildMessage(request, disableDescription);
 
-            // Poster branch: send the image with the title/description as caption.
-            if (imageInfo != null && disablePoster != "true")
+            using (var httpClient = ProxyHelper.CreateClient(configuration))
             {
-                var caption = BuildMessage(request, disableDescription);
-                var originalImageInfo = await imageInfo.GetImageInfo(cancellationToken).ConfigureAwait(false);
-                await _fileSystem.ReadAllBytesAsync(originalImageInfo.Path, cancellationToken).ConfigureAwait(false);
-
-                var requestUri = "https://api.telegram.org/bot" + botToken + "/sendPhoto";
-
-                using (var httpClient = new HttpClient())
-                using (var form = new MultipartFormDataContent())
-                using (var fileStream = new FileStream(originalImageInfo.Path, FileMode.Open, FileAccess.Read))
+                try
                 {
-                    var streamContent = new StreamContent(fileStream);
-                    streamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-                    form.Add(streamContent, "photo", Path.GetFileName(originalImageInfo.Path));
-                    form.Add(new StringContent(chatID), "chat_id");
-                    form.Add(new StringContent(caption), "caption");
+                    var imageInfo = request.GetSeriesImageInfo(ImageType.Primary)
+                        ?? request.GetSeriesImageInfo(ImageType.Thumb)
+                        ?? request.GetImageInfo(ImageType.Primary);
 
-                    var response = await httpClient.PostAsync(requestUri, form);
-                    var body = await response.Content.ReadAsStringAsync();
-
-                    if (!response.IsSuccessStatusCode)
+                    if (imageInfo != null && disablePoster != "true")
                     {
-                        throw new Exception($"Telegram API error: {response.StatusCode} - {body}");
+                        await SendPhoto(httpClient, imageInfo, botToken, chatID, message, cancellationToken)
+                            .ConfigureAwait(false);
+                        return;
                     }
-                }
 
+                    await SendText(httpClient, botToken, chatID, message, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (HttpRequestException ex) when (ProxyHelper.IsEnabled(configuration))
+                {
+                    throw new Exception(
+                        "通过代理 " + DescribeProxy(configuration) + " 连接 Telegram 失败: " + ex.Message, ex);
+                }
+            }
+        }
+
+        private async Task SendPhoto(
+            HttpClient httpClient,
+            ApiImageInfo imageInfo,
+            string botToken,
+            string chatID,
+            string caption,
+            CancellationToken cancellationToken)
+        {
+            var originalImageInfo = await imageInfo.GetImageInfo(cancellationToken).ConfigureAwait(false);
+            await _fileSystem.ReadAllBytesAsync(originalImageInfo.Path, cancellationToken).ConfigureAwait(false);
+
+            var requestUri = "https://api.telegram.org/bot" + botToken + "/sendPhoto";
+
+            using (var form = new MultipartFormDataContent())
+            using (var fileStream = new FileStream(originalImageInfo.Path, FileMode.Open, FileAccess.Read))
+            {
+                var streamContent = new StreamContent(fileStream);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                form.Add(streamContent, "photo", Path.GetFileName(originalImageInfo.Path));
+                form.Add(new StringContent(chatID), "chat_id");
+                form.Add(new StringContent(caption), "caption");
+
+                var response = await httpClient.PostAsync(requestUri, form, cancellationToken).ConfigureAwait(false);
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Telegram API error: {response.StatusCode} - {body}");
+                }
+            }
+        }
+
+        private static async Task SendText(
+            HttpClient httpClient,
+            string botToken,
+            string chatID,
+            string message,
+            CancellationToken cancellationToken)
+        {
+            // Telegram caps a single message at 4096 characters.
+            const int chunkSize = 4096;
+
+            if (message.Length <= chunkSize)
+            {
+                await PostText(httpClient, botToken, chatID, message, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            // Text branch, split into 4096 character chunks (Telegram limit).
-            var message = BuildMessage(request, disableDescription);
-
-            if (message.Length > 4096)
+            for (var i = 0; i < message.Length; i += chunkSize)
             {
-                var chunkSize = 4096;
-                var messageLength = message.Length;
+                var length = Math.Min(chunkSize, message.Length - i);
+                await PostText(httpClient, botToken, chatID, message.Substring(i, length), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
 
-                for (var i = 0; i < messageLength; i += chunkSize)
+        private static async Task PostText(
+            HttpClient httpClient,
+            string botToken,
+            string chatID,
+            string text,
+            CancellationToken cancellationToken)
+        {
+            var url = "https://api.telegram.org/bot" + botToken
+                + "/sendmessage?chat_id=" + chatID
+                + "&text=" + Uri.EscapeDataString(text);
+
+            using (var content = new StringContent(string.Empty))
+            using (var response = await httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false))
+            {
+                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    if (i + chunkSize > messageLength)
-                    {
-                        chunkSize = messageLength - i;
-                    }
-
-                    var text = Uri.EscapeDataString(message.Substring(i, chunkSize));
-                    var httpRequestOptions = new HttpRequestOptions
-                    {
-                        Url = "https://api.telegram.org/bot" + botToken + "/sendmessage?chat_id=" + chatID + "&text=" + text,
-                        CancellationToken = cancellationToken
-                    };
-
-                    using (await _httpClient.Post(httpRequestOptions).ConfigureAwait(false))
-                    {
-                    }
+                    throw new Exception($"Telegram API error: {response.StatusCode} - {body}");
                 }
             }
-            else
-            {
-                var text = Uri.EscapeDataString(message);
-                var httpRequestOptions = new HttpRequestOptions
-                {
-                    Url = "https://api.telegram.org/bot" + botToken + "/sendmessage?chat_id=" + chatID + "&text=" + text,
-                    CancellationToken = cancellationToken
-                };
+        }
 
-                using (await _httpClient.Post(httpRequestOptions).ConfigureAwait(false))
-                {
-                }
+        private static string DescribeProxy(PluginConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return "(未配置)";
             }
+
+            return string.Format("{0}://{1}:{2}", configuration.ProxyType, configuration.ProxyHost, configuration.ProxyPort);
         }
 
         private static string BuildMessage(InternalNotificationRequest request, string disableDescription)

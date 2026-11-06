@@ -35,6 +35,11 @@ define(['baseView', 'loading', 'emby-input', 'emby-button', 'emby-checkbox', 'pl
         page.querySelector('.txtTelegramChatID').value = config.ChatID || '';
         page.querySelector('.chkTelegramDisablePoster').checked = config.DisablePoster === true;
         page.querySelector('.chkTelegramDisableDescription').checked = config.DisableDescription === true;
+        page.querySelector('.selProxyType').value = config.ProxyType || '';
+        page.querySelector('.txtProxyHost').value = config.ProxyHost || '';
+        page.querySelector('.txtProxyPort').value = config.ProxyPort || '';
+        page.querySelector('.txtProxyUser').value = config.ProxyUser || '';
+        page.querySelector('.txtProxyPass').value = config.ProxyPass || '';
 
         return getTelegramEntry().then(function (entry) {
             currentEntry = entry;
@@ -58,6 +63,11 @@ define(['baseView', 'loading', 'emby-input', 'emby-button', 'emby-checkbox', 'pl
             config.ChatID = form.querySelector('.txtTelegramChatID').value;
             config.DisablePoster = form.querySelector('.chkTelegramDisablePoster').checked;
             config.DisableDescription = form.querySelector('.chkTelegramDisableDescription').checked;
+            config.ProxyType = form.querySelector('.selProxyType').value || '';
+            config.ProxyHost = form.querySelector('.txtProxyHost').value || '';
+            config.ProxyPort = parseInt(form.querySelector('.txtProxyPort').value, 10) || 0;
+            config.ProxyUser = form.querySelector('.txtProxyUser').value || '';
+            config.ProxyPass = form.querySelector('.txtProxyPass').value || '';
 
             return ApiClient.updatePluginConfiguration(pluginId, config);
         }).then(function () {

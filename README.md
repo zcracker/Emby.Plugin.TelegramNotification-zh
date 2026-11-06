@@ -2,7 +2,7 @@
 
 Emby 服务器插件：把播放/入库等通知推送到 Telegram Bot。本仓库是上游
 [bjoerns1983/Emby.Plugin.TelegramNotification](https://github.com/bjoerns1983/Emby.Plugin.TelegramNotification)
-（GPL-2.0）的修改版，版本号 `1.4.2.0`（构建 5），界面中文化并补上了服务器级配置。
+（GPL-2.0）的修改版，版本号 `1.4.3.0`（构建 6），界面中文化并补上了服务器级配置与代理支持。
 
 ## 与上游的差异
 
@@ -16,10 +16,12 @@ Emby 服务器插件：把播放/入库等通知推送到 Telegram Bot。本仓�
 - **长文本分片**：超过 Telegram 4096 字符上限时按 4096 自动拆分成多条
 - **配置持久化**：除 Emby 自身的插件配置外，同时写入
   `plugins/configurations/TelegramNotification.ini`，避免重启后配置被空对象覆盖
+- **代理支持**（1.4.3.0 新增）：直连、HTTP、HTTPS、SOCKS5，可带用户名密码。
+  HTTP/HTTPS 代理访问 `https://api.telegram.org` 时走 `CONNECT` 隧道，海报和文字消息都走同一个代理
 
 ## 安装
 
-1. 从 [Releases](../../releases) 下载 `Emby.Plugin.TelegramNotification-1.4.2.0.dll`
+1. 从 [Releases](../../releases) 下载 `Emby.Plugin.TelegramNotification-1.4.3.0.dll`
 2. 放进 Emby 的插件目录，例如 `/var/lib/emby/plugins`（Windows 一般是
    `C:\Users\<用户>\AppData\Roaming\Emby-Server\programdata\plugins`）
 3. 重启 Emby
@@ -40,11 +42,28 @@ dotnet build -c Release
 `MediaBrowser.Controller` / `MediaBrowser.Model` / `MediaBrowser.Common`。
 本仓库 `dist/` 下的 DLL 就是用仓库内源码编译出来的。
 
+## 代理
+
+插件设置页「代理」一节：
+
+- **不使用代理**：直连 `api.telegram.org`（国内服务器通常不通）
+- **HTTP 代理**：`http://host:port`，例如 `10.0.0.115:7890`（Clash/Stash/mihomo 的混合端口）
+- **HTTPS 代理**：先和代理本身建立 TLS，再 `CONNECT`（代理端口本身必须是 TLS 服务）
+- **SOCKS5**：`socks5://host:port`
+
+注意：
+
+- SOCKS5 与 HTTPS 代理依赖运行时的实现，需要 .NET 6 及以上（Emby 4.8+ 自带）；旧运行时只支持 HTTP 代理
+- 代理地址栏可以只填 `host`，也可以填 `host:port` 或 `http://host:port`，端口字段会作为兜底
+- 用户名/密码可选，密码以明文保存在 Emby 的插件配置和 `TelegramNotification.ini` 里，注意目录权限
+- 保存后点「发送测试消息」即可验证代理是否通；失败时 Emby 日志会写明 `通过代理 http://host:port 连接 Telegram 失败: ...`
+
 ## 目录
 
 ```
 src/Plugin.cs             插件入口：配置页、页面注册、配置读写
 src/Notifier.cs           通知发送：海报 / 文本 / 分片
+src/ProxyHelper.cs        代理构造：http / https / socks5 + 认证
 src/Configuration/        PluginConfiguration 与前端页面（html/js）
 dist/                     编译好的 DLL
 ```
